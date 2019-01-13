@@ -1,5 +1,5 @@
 mod tokenizer;
-
+mod parser;
 pub use self::tokenizer::Tokenizer;
 
 fn main() {

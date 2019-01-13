@@ -1,6 +1,5 @@
-use std::iter::Iterator;
+use std::iter::{Iterator, Peekable};
 use std::str::Chars;
-
 #[derive(Debug, Clone, PartialEq)]
 #[allow(dead_code)]
 pub enum Token {
@@ -28,12 +27,12 @@ impl Tokenizer {
 
     pub fn tokens(&self) -> TokenIterator {
         let chars = self.buf.chars();
-        TokenIterator {buf: chars}
+        TokenIterator {buf: chars.peekable()}
     }
 }
 
 pub struct TokenIterator<'a> {
-    buf : Chars<'a>
+    buf : Peekable<Chars<'a>>
 }
 
 impl<'a> TokenIterator<'a> {

@@ -1,6 +1,6 @@
-use crate::tokenizer::tokenizer::Token;
+use crate::tokenizer::Token;
 use std::fmt::Display;
-use crate::tokenizer::tokenizer;
+use crate::tokenizer;
 
 pub trait SuffixedType {
     fn get_suffix() -> &'static str;
