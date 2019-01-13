@@ -1,6 +1,7 @@
 use std::iter::{Iterator, Peekable};
 use std::str::Chars;
 #[derive(Debug, Clone, PartialEq)]
+
 #[allow(dead_code)]
 pub enum Token {
     Int8(i8),

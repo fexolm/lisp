@@ -1,11 +1,13 @@
+#![feature(box_patterns)]
+
 mod tokenizer;
 mod parser;
-pub use self::tokenizer::Tokenizer;
+mod ast;
+
+use crate::tokenizer::Tokenizer;
 
 fn main() {
-    let tokenizer = Tokenizer::new("( lel 123 )".to_string());
-
-    for t in tokenizer.tokens() {
-        print!("{:?}\n", t);
-    }
+    let tokenizer = Tokenizer::new("( cons )".to_string());
+    let root = parser::parse(&mut tokenizer.tokens());
+    print!("{:?}\n", root);
 }
