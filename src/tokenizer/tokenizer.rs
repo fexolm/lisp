@@ -1,7 +1,7 @@
 use std::iter::{Iterator, Peekable};
 use std::str::Chars;
-
 #[derive(Debug, Clone, PartialEq)]
+
 #[allow(dead_code)]
 pub enum Token {
     Int8(i8),
@@ -28,13 +28,12 @@ impl Tokenizer {
 
     pub fn tokens(&self) -> TokenIterator {
         let chars = self.buf.chars();
-        TokenIterator {buf: chars.peekable(), last: None}
+        TokenIterator {buf: chars.peekable()}
     }
 }
 
 pub struct TokenIterator<'a> {
-    buf : Peekable<Chars<'a>>,
-    last : Option<char>
+    buf : Peekable<Chars<'a>>
 }
 
 impl<'a> TokenIterator<'a> {
@@ -43,11 +42,7 @@ impl<'a> TokenIterator<'a> {
         for c in &mut self.buf {
             match c {
                 c if c.is_digit(10) => s += &c.to_string(),
-                ' ' | '\n' | '\r' | '\t'  => return Some(Token::Int32(s.parse::<i32>().unwrap())),
-                ')' => {
-                    self.last = Some(')');
-                    return Some(Token::Int32(s.parse::<i32>().unwrap()))
-                },
+                ' ' | '\n' | '\r' | '\t' | ')' | '(' => return Some(Token::Int32(s.parse::<i32>().unwrap())),
                 // TODO: add prefixed integers and floating point numbers
                 _ => return Some(Token::Invalid),
             }
@@ -61,19 +56,12 @@ impl<'a> TokenIterator<'a> {
         for c in &mut self.buf {
             match c {
                 '\"' => close = true,
-                ' ' | '\n' | '\r' | '\t' =>
+                ' ' | '\n' | '\r' | '\t' | ')' | '(' =>
                     return if close {
                         Some(Token::Str(s))
                     } else {
                         Some(Token::Invalid)
                     },
-                ')' => {
-                    self.last = Some(')');
-                    return if close {
-                        Some(Token::Str(s))
-                    } else {
-                        Some(Token::Invalid)
-                    }
                 },
                 _ if close => return Some(Token::Invalid),
                 c => s += &c.to_string(),
@@ -86,12 +74,8 @@ impl<'a> TokenIterator<'a> {
         let mut s = c.to_string();
         for c in &mut self.buf {
             match c {
-                ' ' | '\n' | '\r' | '\t' => return Some(Token::Symbol(s)),
+                ' ' | '\n' | '\r' | '\t' | '(' | ')' => return Some(Token::Symbol(s)),
                 c if c.is_alphanumeric() => s += &c.to_string(),
-                ')' => {
-                    self.last = Some(')');
-                    return Some(Token::Symbol(s))
-                },
                 _ => return Some(Token::Invalid),
             }
         }
