@@ -1,6 +1,6 @@
 mod tokenizer;
 
 #[cfg(test)]
-mod test;
+mod tests;
 
 pub use self::tokenizer::*;
