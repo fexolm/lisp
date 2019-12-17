@@ -83,8 +83,17 @@ pub fn test_suffix_helper<T>(val: T)
 }
 
 pub fn check_correctness_helper(expected : &[Token], tokenizer : &tokenizer::Tokenizer) {
-    assert_eq!(tokenizer.tokens().count(), expected.len(), "Exact and expected lengths not equal");
+    assert_eq!(tokenizer.tokens().count(), expected.len(),
+        "results are not equal: \n\
+        {:?}\n{:?}",
+        tokenizer.tokens().collect::<Vec<Token>>(),
+        expected.to_vec()
+    );
     for (r, e) in tokenizer.tokens().zip(expected.iter()) {
-        assert_eq!(r, *e, "Tokens not equal");
+        assert_eq!(r, *e,
+           "results are not equal: \n\
+           {:?}\n{:?}",
+           tokenizer.tokens().collect::<Vec<Token>>(),
+           expected.to_vec());
     }
 }

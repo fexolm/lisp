@@ -37,48 +37,60 @@ pub struct TokenIterator<'a> {
 }
 
 impl<'a> TokenIterator<'a> {
-    fn parse_num(&mut self, c: char) -> Option<Token> {
-        let mut s = c.to_string();
-        for c in &mut self.buf {
-            match c {
-                c if c.is_digit(10) => s += &c.to_string(),
-                ' ' | '\n' | '\r' | '\t' | ')' => return Some(Token::Int32(s.parse::<i32>().unwrap())),
-                // TODO: add prefixed integers and floating point numbers
-                _ => return Some(Token::Invalid),
+    fn parse_num(&mut self) -> Option<Token> {
+        let mut s = "".to_string();
+        loop {
+            if let Some(c) = self.buf.peek() {
+                match *c {
+                    ch if ch.is_digit(10) => s += &ch.to_string(),
+                    ' ' | '\n' | '\r' | '\t' | ')' => return Some(Token::Int32(s.parse::<i32>().unwrap())),
+                    // TODO: add prefixed integers and floating point numbers
+                    _ => return Some(Token::Invalid),
+                }
+                self.buf.next();
+            } else {
+                return None;
             }
         }
-        None
     }
 
     fn parse_str(&mut self) -> Option<Token> {
         let mut s = "".to_string();
         let mut close = false;
-        for c in &mut self.buf {
-            match c {
-                '\"' => close = true,
-                ' ' | '\n' | '\r' | '\t' | ')' =>
-                    return if close {
-                        Some(Token::Str(s))
-                    } else {
-                        Some(Token::Invalid)
-                    },
-                _ if close => return Some(Token::Invalid),
-                c => s += &c.to_string(),
+        loop {
+            if let Some(c) = self.buf.peek() {
+                match *c {
+                    '\"' => close = true,
+                    ' ' | '\n' | '\r' | '\t' | ')' =>
+                        return if close {
+                            Some(Token::Str(s))
+                        } else {
+                            Some(Token::Invalid)
+                        },
+                    _ if close => return Some(Token::Invalid),
+                    ch => s += &ch.to_string(),
+                }
+                self.buf.next();
+            } else {
+                return None;
             }
         }
-        None
     }
 
-    fn parse_symbol(&mut self, c: char) -> Option<Token> {
-        let mut s = c.to_string();
-        for c in &mut self.buf {
-            match c {
-                ' ' | '\n' | '\r' | '\t' | ')' => return Some(Token::Symbol(s)),
-                c if c.is_alphanumeric() => s += &c.to_string(),
-                _ => return Some(Token::Invalid),
+    fn parse_symbol(&mut self) -> Option<Token> {
+        let mut s = "".to_string();
+        loop {
+            if let Some(c) = self.buf.peek() {
+                match *c {
+                    ' ' | '\n' | '\r' | '\t' | ')' => return Some(Token::Symbol(s)),
+                    c if c.is_alphanumeric() => s += &c.to_string(),
+                    _ => return Some(Token::Invalid),
+                }
+                self.buf.next();
+            } else {
+                return None;
             }
         }
-        None
     }
 }
 
@@ -86,18 +98,35 @@ impl<'a> Iterator for TokenIterator<'a> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        for c in &mut self.buf {
-            match c {
-                ' ' | '\n' | '\r' | '\t' => continue,
-                '(' => return Some(Token::OpenParen),
-                ')' => return Some(Token::CloseParen),
-                ch if ch.is_digit(10) => return self.parse_num(c),
-                '\"' => return self.parse_str(),
-                ch if ch.is_alphabetic() => return self.parse_symbol(c),
-                _ => return Some(Token::Invalid),
+        loop {
+            if let Some(c) = self.buf.peek() {
+                match *c {
+                    ' ' | '\n' | '\r' | '\t' => (),
+                    '(' => {
+                        self.buf.next();
+                        return Some(Token::OpenParen)
+                    },
+                    ')' => {
+                        self.buf.next();
+                        return Some(Token::CloseParen)
+                    },
+                    ch if ch.is_digit(10) => return self.parse_num(),
+                    '\"' => {
+                        self.buf.next();
+                        return self.parse_str()
+                    },
+                    ch if ch.is_alphabetic() => return self.parse_symbol(),
+                    _ => {
+                        self.buf.next();
+                        return Some(Token::Invalid)
+                    },
+                }
+                self.buf.next();
+            }
+            else {
+                return None;
             }
         }
-        return None
     }
 }
 
